@@ -1,0 +1,27 @@
+== Synopsis
+Nearline is a near-line backup and recovery solution.
+
+It is a compelling replacement for straight-to-tape or
+straight-to-disc backup solutions.
+
+It employs a simple database schema to store the data
+and prevent redundancy in the backup stream.
+
+== Examples
+
+=== Backup
+    Nearline.connect! 'backup' # Creates the schema, if needed
+    files_to_back_up = ['/home/rj']
+    things_to_skip = ['\\.class$', '/temp/']
+    Nearline.backup('my_laptop', files_to_back_up, things_to_skip)
+
+=== Restore (Easy and painless from irb)
+    Nearline.connect 'backup'
+    Nearline.restore 'my_laptop'
+
+== Author
+   Robert J. Osborne <rjo1970 at gmail.com>
+
+== Copyright
+   Copyright (c) 2008 Robert J. Osborne  Licensed under
+   the Ruby license.  See LICENSE.
