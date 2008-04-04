@@ -32,7 +32,8 @@ module Nearline
 
         create_table :file_contents do |t|
           t.column :fingerprint, :string, :length => 40
-          t.column :file_size, :integer, :default => 0
+          t.column :file_size, :string, :default => 0
+          t.column :verified_at, :datetime
         end
 
         create_table :sequences do |t|
@@ -43,6 +44,8 @@ module Nearline
         
         add_index :sequences, [:sequence, :file_content_id], :unique => true,
           :name => "sequence_jn_index"
+
+        add_index :sequences, [:block_id]
 
         create_table :archived_files do |t|
           t.column :system_name, :string, :null => false

@@ -13,16 +13,6 @@ module Nearline
         file_content
       end
       
-      def restore_to(io)
-        sequencer = FileSequencer.new(self)
-        sequencer.restore_blocks(io)
-      end
-      
-      def verified?
-        sequencer = FileSequencer.new(self)
-        sequencer.verified?
-      end
-      
       def orphan_check
         if (self.archived_files.size == 1)
           sequences.each do |s|
@@ -39,6 +29,31 @@ module Nearline
         )
         return hit.nil?
       end
+      
+      def restore_to(io)
+        sequences.each do |seq|
+          block = Block.find(seq.block_id)
+          io.write(block.content)
+    end
+      end
+    
+      def verified?
+        if (!self.verified_at.nil?)
+          return true
+        end
+        whole_file_hash = Digest::SHA1.new
+        sequences.each do |seq|
+          block = Block.find(seq.block_id)
+          whole_file_hash.update(block.content)
+        end
+        if fingerprint == whole_file_hash.hexdigest
+          self.verified_at = Time.now
+          self.save!
+          return true
+        end
+        false
+      end
+      
       
     end
     
@@ -66,20 +81,7 @@ module Nearline
         sequence
       end
       
-      def restore_blocks(io)
-        @file_content.sequences.each do |seq|
-          io.write(seq.block.content)
         end
-      end
       
-      def verified?
-        whole_file_hash = Digest::SHA1.new
-        @file_content.sequences.each do |seq|
-          whole_file_hash.update(seq.block.content)
         end
-        @file_content.fingerprint == whole_file_hash.hexdigest
       end
-    end
-
-  end
-end

@@ -202,6 +202,7 @@ module Nearline
         if self.file_content.unique_fingerprint?(key)
           self.file_content.fingerprint = key
           self.file_content.save!
+          self.save!
           verify_content(manifest)
           return true
         end
