@@ -35,7 +35,12 @@ module Nearline
         self.bulk_content
       end
           
-      def self.for_content(x)
+      def self.for_content(x, old_block = nil)
+        unless old_block.nil?
+          if x == old_block.content
+            return old_block
+          end
+        end
         block = Models::Block.new(:bulk_content => x)
         block.calculate_fingerprint
         found = find_by_fingerprint(block.fingerprint)
