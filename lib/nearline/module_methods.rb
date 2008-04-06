@@ -1,5 +1,15 @@
 module Nearline  
   module_function
+
+  # Every model using an ActiveRecord connection
+  AR_MODELS = [
+    Nearline::Models::ArchivedFile,
+    Nearline::Models::Block,
+    Nearline::Models::FileContent,
+    Nearline::Models::Manifest,
+    Nearline::Models::Sequence,
+    Nearline::Models::Log
+  ]
   
   
   # Establishes the ActiveRecord connection
@@ -18,11 +28,13 @@ module Nearline
   # Nearline.connect! 'production'
   # 
   def connect!(config="development")
-    if (config.class.to_s == 'String')
-      ActiveRecord::Base.establish_connection(YAML.load_file("config/database.yml")[config])
+    if (config.is_a? String)
+      ActiveRecord::Base.establish_connection(
+        YAML.load_file("config/database.yml")[config]
+      )
     end
     
-    if (config.class.to_s == 'Hash')
+    if (config.is_a? Hash)
       ActiveRecord::Base.establish_connection(config)      
     end
     
@@ -49,21 +61,13 @@ module Nearline
     # These are the ActiveRecord models in place
     # Each one needs an explicit establish_connection
     # if you don't want it running though ActiveRecord::Base  
-    models = [
-      Nearline::Models::ArchivedFile,
-      Nearline::Models::Block,
-      Nearline::Models::FileContent,
-      Nearline::Models::Manifest,
-      Nearline::Models::Sequence,
-      Nearline::Models::Log
-    ]
-    if (config.class.to_s == 'String')
+    if (config.is_a? String)
       hash = YAML.load_file("config/database.yml")[config]
     else
       hash = config
     end
     
-    models.each do |m|
+    AR_MODELS.each do |m|
       m.establish_connection(hash)
     end
     Nearline::Models::Block.connected?
@@ -79,7 +83,11 @@ module Nearline
   # 
   # Returns a Manifest for the backup
   def backup(system_name, backup_paths,backup_exclusions= [])
-    Nearline::Models::Manifest.backup(system_name, backup_paths, backup_exclusions)
+    Nearline::Models::Manifest.backup(
+      system_name,
+      backup_paths,
+      backup_exclusions
+    )
   end
   
   # Restore all missing files from the latest backup

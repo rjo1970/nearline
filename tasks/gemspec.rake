@@ -3,7 +3,7 @@ require 'rake/gempackagetask'
 
 SPEC = Gem::Specification.new do |s|
   s.name = "nearline"
-  s.version = "0.0.2"
+  s.version = "0.0.3"
   s.author = "Robert J. Osborne"
   s.email = "rjo1970@gmail.com"
   s.summary = "Nearline is a near-line backup and recovery solution"

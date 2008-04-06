@@ -3,7 +3,6 @@
 # Nearline
 # Copyright (C) 2008 Robert J. Osborne
 
-require 'nearline/module_methods'
 
 # ActiveRecord database definitions
 require 'nearline/schema'
@@ -14,3 +13,6 @@ require 'nearline/file_content'
 require 'nearline/archived_file'
 require 'nearline/log'
 require 'nearline/manifest'
+
+# Static methods on Nearline
+require 'nearline/module_methods'

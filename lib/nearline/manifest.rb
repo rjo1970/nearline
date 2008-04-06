@@ -34,10 +34,11 @@ module Nearline
         manifest.save!
         
         FileFinder.recurse(backup_paths, backup_exclusions) do |file_name|
+          $stdout.write file_name
           af = ArchivedFile.create_for(system_name, file_name, manifest)
           if (!af.nil?)
             manifest.archived_files << af
-            $stdout.write "#{af.path}  #{Time.at(af.mtime).asctime}"
+            $stdout.write " #{Time.at(af.mtime).asctime}"
             if (!af.file_content.nil?)
               $stdout.write" (#{af.file_content.file_size} bytes)"
             end
@@ -98,6 +99,16 @@ module Nearline
         logs.each do |log|
           log.destroy
         end
+      end
+      
+      def total_size
+        size = 0
+        archived_files.each do |af|
+          unless af.file_content.nil?
+            size += af.file_content.file_size.to_i
+          end
+        end
+        size
       end
       
     end

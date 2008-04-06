@@ -4,6 +4,8 @@ module Nearline
     # Represents file metadata and possible related FileContent
     # for a single file on a single system
     class ArchivedFile < ActiveRecord::Base
+      require 'fileutils'
+      
       belongs_to :file_content
       has_and_belongs_to_many :manifests
             

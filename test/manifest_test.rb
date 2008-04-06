@@ -32,5 +32,10 @@ class ManifestTest < Test::Unit::TestCase
       m.save!
     end
     assert_equal 2, Nearline::Models::Manifest.incomplete_manifests.size
+  end
+
+  def test_total_size
+    m = Nearline::Models::Manifest.backup("foo",[$readme],[])
+    assert m.total_size > 0
   end  
 end
