@@ -35,7 +35,7 @@ module Nearline
         
         FileFinder.recurse(backup_paths, backup_exclusions) do |file_name|
           $stdout.write file_name
-          af = ArchivedFile.create_for(system_name, file_name, manifest)
+          af = ArchivedFile.create_for(file_name, manifest)
           if (!af.nil?)
             manifest.archived_files << af
             $stdout.write " #{Time.at(af.mtime).asctime}"
@@ -109,6 +109,13 @@ module Nearline
           end
         end
         size
+      end
+
+      # A simple string reporting the performance of the manifest
+      def summary
+        completed = (completed_at.nil?) ? "DNF" : completed_at
+        "#{system_name}; started: #{created_at}; finished: #{completed}; " +
+          "#{archived_files.size} files; #{logs.size} Errors reported"
       end
       
     end

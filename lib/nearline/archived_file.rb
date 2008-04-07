@@ -9,9 +9,8 @@ module Nearline
       belongs_to :file_content
       has_and_belongs_to_many :manifests
             
-      def self.create_for(system_name, file_path, manifest)
-        
-        file_information = FileInformation.new(system_name, file_path, manifest)
+      def self.create_for(file_path, manifest)        
+        file_information = FileInformation.new(file_path, manifest)
 
         # The path doesn't actually exist and fails a File.stat
         return nil if file_information.path_hash.nil?
@@ -43,28 +42,29 @@ module Nearline
       
       class FileInformation
         attr_reader :path_hash, :stat, :is_directory, :archived_file_parameters
-        def initialize(system_name, file_path, manifest)
+        def initialize(file_path, manifest)
           @manifest = manifest
-          @stat = read_stat(file_path)
+          @file_path = file_path
+          @stat = read_stat
           @is_directory = File.directory?(file_path)
-          @path_hash = generate_path_hash(system_name, file_path)
-          @archived_file_parameters = build_parameters(system_name, file_path)
+          @path_hash = generate_path_hash
+          @archived_file_parameters = build_parameters
         end
 
-        def read_stat(file_path)
+        def read_stat
           stat = nil
           begin
-            stat = File.stat(file_path)
+            stat = File.stat(@file_path)
           rescue
-            @manifest.add_log("File not found on stat: #{file_path}")
+            @manifest.add_log("File not found on stat: #{@file_path}")
           end
           stat
         end
 
-        def generate_path_hash(system_name, file_path)
+        def generate_path_hash
           return nil if @stat.nil?          
-          target = [system_name, 
-            file_path,
+          target = [@manifest.system_name, 
+            @file_path,
             @stat.uid,
             @stat.gid,
             @stat.mtime.to_i,
@@ -77,11 +77,11 @@ module Nearline
           return nil
         end
 
-        def build_parameters(system_name, file_path)
+        def build_parameters
           return nil if @stat.nil?
           {
-            :system_name => system_name,
-            :path => file_path,
+            :system_name => @manifest.system_name,
+            :path => @file_path,
             :path_hash => @path_hash,
             :file_content => file_content_entry_for_files_only,
             :uid => @stat.uid,

@@ -74,9 +74,9 @@ module Nearline
   end
   
   # Performs a backup labeled for system_name,
-  # Recursing through an array of backup_paths,
+  # Recursing through a single string or an array of backup_paths,
   # Excluding any path matching any of the regular
-  # expressions in the backup_exclusions array.
+  # expressions in the backup_exclusions array or single string.
   # 
   # Expects the Nearline database connection has already
   # been established
@@ -85,9 +85,16 @@ module Nearline
   def backup(system_name, backup_paths,backup_exclusions= [])
     Nearline::Models::Manifest.backup(
       system_name,
-      backup_paths,
-      backup_exclusions
+      string_to_array(backup_paths),
+      string_to_array(backup_exclusions)
     )
+  end
+  
+  def string_to_array(x)
+    if x.is_a? String
+      return [x]
+    end
+    x
   end
   
   # Restore all missing files from the latest backup

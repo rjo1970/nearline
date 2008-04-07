@@ -11,14 +11,14 @@ class ArchivedFileTest < Test::Unit::TestCase
     Nearline::Models.empty_schema
   end
   
-  def manifest
-    m = Nearline::Models::Manifest.new
+  def manifest(name = 'foo')
+    m = Nearline::Models::Manifest.new(:system_name => name)
     m.save
     m
   end
   
   def create_for(name)
-    Nearline::Models::ArchivedFile.create_for(name, $readme, manifest)
+    Nearline::Models::ArchivedFile.create_for($readme, manifest(name))
   end
 
   def test_archiving_a_file_creates_archived_file_and_content_records
@@ -50,7 +50,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
     
   def test_archiving_the_test_directory
-    directory = Nearline::Models::ArchivedFile.create_for("foo",$temp_path, manifest)
+    directory = Nearline::Models::ArchivedFile.create_for($temp_path, manifest)
     assert directory.is_directory?
   end
   
@@ -66,7 +66,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def test_missing_file
-    af = Nearline::Models::ArchivedFile.create_for("foo", "does_not_exist", manifest)
+    af = Nearline::Models::ArchivedFile.create_for("does_not_exist", manifest)
     assert_nil(af)
   end
   
@@ -79,7 +79,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def test_restore_directory_to_redirected_path
-    af = Nearline::Models::ArchivedFile.create_for("foo", $temp_path, manifest)
+    af = Nearline::Models::ArchivedFile.create_for($temp_path, manifest)
     af.restore(:path => $temp_path+"/foo")
     assert File.directory?($temp_path+"/foo")
   end
