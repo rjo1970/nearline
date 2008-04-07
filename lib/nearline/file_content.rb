@@ -34,7 +34,7 @@ module Nearline
         sequences.each do |seq|
           block = Block.find(seq.block_id)
           io.write(block.content)
-    end
+        end
       end
     
       def verified?
@@ -70,18 +70,19 @@ module Nearline
         @file_content = file_content
       end
       
-      def preserve_block(block)
+      def preserve_content(content)
         @inc += 1
+        block = Block.for_content(content)
         sequence = Sequence.new(
           :sequence => @inc,
           :file_content_id => @file_content.id,
           :block_id => block.id
         )
         sequence.save!
-        sequence
+        sequence        
       end
+            
+    end
       
-        end
-      
-        end
-      end
+  end
+end

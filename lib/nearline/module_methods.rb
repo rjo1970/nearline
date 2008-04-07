@@ -89,14 +89,14 @@ module Nearline
       string_to_array(backup_exclusions)
     )
   end
-  
+     
   def string_to_array(x)
     if x.is_a? String
       return [x]
     end
     x
   end
-  
+
   # Restore all missing files from the latest backup
   # for system_name
   # 

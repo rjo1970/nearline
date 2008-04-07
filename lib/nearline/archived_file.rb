@@ -179,8 +179,7 @@ module Nearline
             io.read(Block::MAX_SIZE, buffer)
             file_size += buffer.size
             whole_file_hash.update(buffer)
-            block = Block.for_content(buffer)              
-            sequencer.preserve_block(block)
+            sequencer.preserve_content(buffer)
           end
         end
         return file_size

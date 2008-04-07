@@ -13,7 +13,7 @@ class FileContentTest < Test::Unit::TestCase
     sequencer = Nearline::Models::FileSequencer.new(file_content)
  
     iterations.times do |i|
-      sequencer.preserve_block(Nearline::Models::Block.for_content(content(i)))
+      sequencer.preserve_content(content(i))
     end
           
     assert_equal(count+iterations, Nearline::Models::Sequence.count)
@@ -27,7 +27,7 @@ class FileContentTest < Test::Unit::TestCase
   def test_file_content_restore
     file_content = Nearline::Models::FileContent.fresh_entry
     sequencer = Nearline::Models::FileSequencer.new(file_content)
-    sequencer.preserve_block(Nearline::Models::Block.for_content("abc123"))
+    sequencer.preserve_content("abc123")
     w = Writer.new
     file_content.restore_to(w)
     assert_equal "abc123", w.s

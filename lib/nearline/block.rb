@@ -29,12 +29,15 @@ module Nearline
       end
     
       def content
-        if (self.is_compressed)
-          return Zlib::Inflate.inflate(self.bulk_content)
+        if !@content.nil?
+          return @content
         end
-        self.bulk_content
+        if (self.is_compressed)
+          return @content = Zlib::Inflate.inflate(self.bulk_content)
+        end
+        @content = self.bulk_content
       end
-          
+
       def self.for_content(x, old_block = nil)
         unless old_block.nil?
           if x == old_block.content
