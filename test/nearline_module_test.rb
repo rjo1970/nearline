@@ -47,30 +47,30 @@ class NearlineModuleTest < Test::Unit::TestCase
   
   def test_no_dangling_records
     Nearline.connect! 'test'
-    files_to_back_up = [$readme]
+    files_to_back_up = $temp_path
     m1 = Nearline.backup("baz", files_to_back_up)
     m2 = Nearline.backup("baz", files_to_back_up)
     m2.add_log("Baz log message for m2")
-    assert 1, Nearline::Models::Block.count
-    assert 1, Nearline::Models::FileContent.count
-    assert 1, Nearline::Models::Sequence.count
-    assert 1, Nearline::Models::ArchivedFile.count
-    assert 1, Nearline::Models::Log.count
-    assert 2, Nearline::Models::Manifest.count
+    assert_equal 1, Nearline::Models::Block.count
+    assert_equal 1, Nearline::Models::FileContent.count
+    assert_equal 1, Nearline::Models::Sequence.count
+    assert_equal 5, Nearline::Models::ArchivedFile.count
+    assert_equal 1, Nearline::Models::Log.count
+    assert_equal 2, Nearline::Models::Manifest.count
     m1.destroy
-    assert 1, Nearline::Models::Block.count
-    assert 1, Nearline::Models::FileContent.count
-    assert 1, Nearline::Models::Sequence.count
-    assert 1, Nearline::Models::ArchivedFile.count
-    assert 1, Nearline::Models::Log.count
-    assert 1, Nearline::Models::Manifest.count
+    assert_equal 1, Nearline::Models::Block.count
+    assert_equal 1, Nearline::Models::FileContent.count
+    assert_equal 1, Nearline::Models::Sequence.count
+    assert_equal 5, Nearline::Models::ArchivedFile.count
+    assert_equal 1, Nearline::Models::Log.count
+    assert_equal 1, Nearline::Models::Manifest.count
     m2.destroy
-    assert 0, Nearline::Models::Block.count
-    assert 0, Nearline::Models::FileContent.count
-    assert 0, Nearline::Models::Sequence.count
-    assert 0, Nearline::Models::ArchivedFile.count
-    assert 0, Nearline::Models::Log.count
-    assert 0, Nearline::Models::Manifest.count
+    assert_equal 0, Nearline::Models::Block.count
+    assert_equal 0, Nearline::Models::FileContent.count
+    assert_equal 0, Nearline::Models::Sequence.count
+    assert_equal 0, Nearline::Models::ArchivedFile.count
+    assert_equal 0, Nearline::Models::Log.count
+    assert_equal 0, Nearline::Models::Manifest.count
   end
       
 end

@@ -73,7 +73,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   def test_persist_missing_file
     af = Nearline::Models::ArchivedFile.new
     af.path = "does_not_exist"
-    af.file_content = Nearline::Models::FileContent.fresh_entry
+    af.file_content = Nearline::Models::FileContent.new
     af.persist(manifest)
     assert af.file_content.sequences.size == 0
   end

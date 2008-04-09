@@ -73,7 +73,7 @@ module Nearline
         end
         
         def file_content_entry_for_files_only
-          return FileContent.fresh_entry unless @is_directory
+          return FileContent.new unless @is_directory
           return nil
         end
 
@@ -190,6 +190,7 @@ module Nearline
           manifest.add_log "recorded file length #{file_size} " +
             "does not match #{self.file_content.file_size} " +
             "reported by the file system on path: #{self.path}"
+          self.file_content.file_size = file_size
         end        
       end
       
@@ -202,7 +203,6 @@ module Nearline
       def unique_sequence_processed?(key,manifest)
         if self.file_content.unique_fingerprint?(key)
           self.file_content.fingerprint = key
-          self.file_content.save!
           self.save!
           verify_content(manifest)
           return true
@@ -211,7 +211,7 @@ module Nearline
       end
       
       def clean_up_duplicate_content
-        Sequence.delete_all("file_content_id=#{self.file_content.id}")
+#        Sequence.delete_all("file_content_id=#{self.file_content.id}")
         self.file_content.orphan_check
       end
       

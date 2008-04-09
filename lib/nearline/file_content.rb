@@ -6,18 +6,11 @@ module Nearline
     class FileContent < ActiveRecord::Base
       has_many :sequences
       has_many :archived_files
-
-      def self.fresh_entry
-        file_content = FileContent.new
-        file_content.save!
-        file_content
-      end
       
       def orphan_check
-        if (self.archived_files.size == 1)
+        if (self.archived_files.size < 2)
           sequences.each do |s|
             s.destroy
-            s.block.orphan_check
           end
           self.destroy
         end
@@ -62,21 +55,26 @@ module Nearline
     class Sequence < ActiveRecord::Base
       belongs_to :block
       belongs_to :file_content
+      
+      def after_destroy
+        block.orphan_check
+      end
     end
     
     class FileSequencer
       def initialize(file_content)
         @inc = 0
         @file_content = file_content
+        @file_content.save!
       end
       
       def preserve_content(content)
         @inc += 1
-        block = Block.for_content(content)
+        block_id = Block.id_for_content(content)
         sequence = Sequence.new(
           :sequence => @inc,
           :file_content_id => @file_content.id,
-          :block_id => block.id
+          :block_id => block_id
         )
         sequence.save!
         sequence        

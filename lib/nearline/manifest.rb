@@ -53,7 +53,10 @@ module Nearline
       
       # Find the latest Manifest for a system
       def self.latest_for(system_name)
-        m_result = self.connection.select_one("select id from manifests where system_name='#{system_name}' order by created_at desc")
+        m_result = self.connection.select_one(
+          "select id from manifests where " +
+          "system_name='#{system_name}' order by created_at desc"
+        )
         raise "No manifest found" if m_result.nil?
         self.find(m_result["id"])        
       end

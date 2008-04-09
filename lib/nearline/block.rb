@@ -37,13 +37,22 @@ module Nearline
         end
         @content = self.bulk_content
       end
-
-      def self.for_content(x, old_block = nil)
-        unless old_block.nil?
-          if x == old_block.content
-            return old_block
-          end
+      
+      def self.id_for_content(x)
+        block = Block.new(:bulk_content => x)
+        block.calculate_fingerprint
+        hit = Block.connection.select_one(
+          "select id from blocks where fingerprint='#{block.fingerprint}'"
+        )
+        unless hit.nil?
+          return hit['id']
         end
+        block.attempt_compression
+        block.save!
+        block.id
+      end
+
+      def self.for_content(x)
         block = Models::Block.new(:bulk_content => x)
         block.calculate_fingerprint
         found = find_by_fingerprint(block.fingerprint)

@@ -1,6 +1,9 @@
 module Nearline  
   module_function
 
+  # VERSION of the software
+  VERSION = "0.0.4"
+  
   # Every model using an ActiveRecord connection
   AR_MODELS = [
     Nearline::Models::ArchivedFile,
