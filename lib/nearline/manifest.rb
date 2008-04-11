@@ -5,10 +5,14 @@ module Nearline
     class FileFinder
       require 'find'
       def self.recurse(paths, exclusions)
+        regex_exclusions = []
+        for exclusion in exclusions
+          regex_exclusions << /#{exclusion}/
+        end
         paths.each do |path|
           Find.find(path) do |f|
-            exclusions.each do |exclusion|
-              Find.prune if f =~ /#{exclusion}/
+            regex_exclusions.each do |ex|
+              Find.prune if ex.match(f)
             end
             yield f
           end
