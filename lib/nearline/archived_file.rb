@@ -33,8 +33,8 @@ module Nearline
         # Find a new file that needs persisted
         archived_file.file_content.file_size = 
           [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
-        archived_file.persist(manifest)
-        archived_file.save!
+        archived_file = archived_file.persist(manifest)
+        archived_file.save! unless archived_file.nil?
         archived_file
         
         # TODO: Symbolic links, block devices, ...?
@@ -196,7 +196,9 @@ module Nearline
       
       def verify_content(manifest)
         unless (self.file_content.verified?)
-          manifest.add_log "failed verification on path: #{self.path}"
+          manifest.add_log "file dropped on failed verification on path: #{self.path}"
+          self.file_content.orphan_check
+          self.destroy
         end        
       end
       
