@@ -101,7 +101,7 @@ module Nearline
   end
 
   # Restore all missing files from the latest backup
-  # for system_name
+  # for system_name and no earlier than latest_date_time
   # 
   # All updated or existing files are left alone
   # 
@@ -109,8 +109,8 @@ module Nearline
   # been established
   # 
   # Returns an Array of paths restored
-  def restore(system_name)
-    Nearline::Models::Manifest.restore_all_missing(system_name)
+  def restore(system_name, latest_date_time = Time.now)
+    Nearline::Models::Manifest.restore_all_missing(system_name, latest_date_time)
   end
   
 end

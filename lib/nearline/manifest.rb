@@ -56,13 +56,16 @@ module Nearline
       end
       
       # Find the latest Manifest for a system
-      def self.latest_for(system_name)
-        m_result = self.connection.select_one(
-          "select id from manifests where " +
-          "system_name='#{system_name}' order by created_at desc"
+      # given the latest_date_time as an upper limit
+      def self.latest_for(system_name, latest_date_time = Time.now)
+        m_result = find(:first,
+          :conditions => 
+            ["system_name = ? and created_at <= ?",
+            system_name, latest_date_time],
+          :order => "created_at desc"
         )
         raise "No manifest found" if m_result.nil?
-        self.find(m_result["id"])        
+        m_result        
       end
       
       # Find all Manifest entries which have never finished.
@@ -74,8 +77,8 @@ module Nearline
         self.find_all_by_completed_at(nil)
       end
       
-      def self.restore_all_missing(system_name)
-        manifest = latest_for(system_name)
+      def self.restore_all_missing(system_name, latest_date_time = Time.now)
+        manifest = latest_for(system_name, latest_date_time)
         manifest.restore_all_missing
       end
       

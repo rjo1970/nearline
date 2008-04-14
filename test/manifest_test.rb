@@ -45,4 +45,16 @@ class ManifestTest < Test::Unit::TestCase
     puts m.summary
   end
   
+  def test_manifest_with_date_limiting
+    manifests = []
+    2.times do 
+      m = Nearline::Models::Manifest.new(:system_name => 'foo')
+      m.save!
+      manifests << m
+      sleep 1
+    end
+    assert_equal 1, Nearline::Models::Manifest.latest_for('foo', manifests[0].created_at).id
+    assert_equal 2, Nearline::Models::Manifest.latest_for('foo', manifests[1].created_at).id
+  end
+  
 end

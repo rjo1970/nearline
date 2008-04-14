@@ -211,7 +211,6 @@ module Nearline
       end
       
       def clean_up_duplicate_content
-#        Sequence.delete_all("file_content_id=#{self.file_content.id}")
         self.file_content.orphan_check
       end
       
