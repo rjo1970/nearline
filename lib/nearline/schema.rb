@@ -12,6 +12,8 @@ module Nearline
         drop_table :manifests
         drop_table :archived_files_manifests
         drop_table :logs
+        drop_table :systems
+        drop_table :nearline_version
       end
     end
     
@@ -46,9 +48,15 @@ module Nearline
           :name => "sequence_jn_index"
 
         add_index :sequences, [:block_id]
+        
+        create_table :systems do |t|
+          t.column :name, :string, :null => false
+        end
+        
+        add_index :systems, [:name], :unique => true
 
         create_table :archived_files do |t|
-          t.column :system_name, :string, :null => false
+          t.column :system_id, :integer, :null => false
           t.column :path, :text, :null => false
           t.column :path_hash, :string, :null => false, :length => 40
           t.column :file_content_id, :integer
@@ -63,7 +71,7 @@ module Nearline
                         
         # Manifests are the reference to a collection of archived files
         create_table :manifests do |t|
-          t.column :system_name, :string
+          t.column :system_id, :integer
           t.column :created_at, :datetime
           t.column :completed_at, :datetime
         end
@@ -86,6 +94,12 @@ module Nearline
           t.column :message, :text
           t.column :created_at, :datetime
         end
+        
+        create_table :nearline_version, :id => false do |t|
+          t.column :version, :string
+        end
+        
+        execute "insert into nearline_version (version) values ('#{Nearline::VERSION}')"        
       end
     end
 

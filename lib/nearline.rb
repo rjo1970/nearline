@@ -10,6 +10,7 @@ require 'nearline/schema'
 # ActiveRecord models
 require 'nearline/block'
 require 'nearline/file_content'
+require 'nearline/system'
 require 'nearline/archived_file'
 require 'nearline/log'
 require 'nearline/manifest'

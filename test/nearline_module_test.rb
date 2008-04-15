@@ -14,20 +14,20 @@ class NearlineModuleTest < Test::Unit::TestCase
     @hash = YAML.load_file("config/database.yml")['test']
   end
     
-  def test_soft_connect_from_string
-    Nearline::Models::Block.expects(:establish_connection)
-    Nearline.connect 'test'
-  end
-  
-  def test_soft_connect_from_hash
-    Nearline::Models::Block.expects(:establish_connection)
-    Nearline.connect(@hash)
-  end
-  
-  def test_connect_from_hash
-    ActiveRecord::Base.expects(:establish_connection)
-    Nearline.connect!(@hash)    
-  end
+#  def test_soft_connect_from_string
+#    Nearline::Models::Block.expects(:establish_connection)
+#    Nearline.connect 'test'
+#  end
+#  
+#  def test_soft_connect_from_hash
+#    Nearline::Models::Block.expects(:establish_connection)
+#    Nearline.connect(@hash)
+#  end
+#  
+#  def test_connect_from_hash
+#    ActiveRecord::Base.expects(:establish_connection)
+#    Nearline.connect!(@hash)    
+#  end
   
   # A single, end-to-end integration test.  The individual
   # pieces are tested elsewhere
@@ -54,6 +54,7 @@ class NearlineModuleTest < Test::Unit::TestCase
     assert_equal 1, Nearline::Models::Block.count
     assert_equal 1, Nearline::Models::FileContent.count
     assert_equal 1, Nearline::Models::Sequence.count
+    assert_equal 1, Nearline::Models::System.count
     assert_equal 5, Nearline::Models::ArchivedFile.count
     assert_equal 1, Nearline::Models::Log.count
     assert_equal 2, Nearline::Models::Manifest.count
@@ -61,13 +62,15 @@ class NearlineModuleTest < Test::Unit::TestCase
     assert_equal 1, Nearline::Models::Block.count
     assert_equal 1, Nearline::Models::FileContent.count
     assert_equal 1, Nearline::Models::Sequence.count
+    assert_equal 1, Nearline::Models::System.count
     assert_equal 5, Nearline::Models::ArchivedFile.count
     assert_equal 1, Nearline::Models::Log.count
     assert_equal 1, Nearline::Models::Manifest.count
-    m2.destroy
+    m2.system.destroy
     assert_equal 0, Nearline::Models::Block.count
     assert_equal 0, Nearline::Models::FileContent.count
     assert_equal 0, Nearline::Models::Sequence.count
+    assert_equal 0, Nearline::Models::System.count
     assert_equal 0, Nearline::Models::ArchivedFile.count
     assert_equal 0, Nearline::Models::Log.count
     assert_equal 0, Nearline::Models::Manifest.count

@@ -9,6 +9,7 @@ module Nearline
     Nearline::Models::ArchivedFile,
     Nearline::Models::Block,
     Nearline::Models::FileContent,
+    Nearline::Models::System,
     Nearline::Models::Manifest,
     Nearline::Models::Sequence,
     Nearline::Models::Log
@@ -44,7 +45,10 @@ module Nearline
     unless Nearline::Models::Block.table_exists?
       Nearline::Models.generate_schema
     end
-    Nearline::Models::Block.connected?
+    
+    unless version_check?
+      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+    end    
   end
   
   # Establishes a connection only to the Nearline ActiveDirectory models
@@ -73,7 +77,11 @@ module Nearline
     AR_MODELS.each do |m|
       m.establish_connection(hash)
     end
-    Nearline::Models::Block.connected?
+
+    unless version_check?
+      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+    end
+
   end
   
   # Performs a backup labeled for system_name,
@@ -86,7 +94,7 @@ module Nearline
   # 
   # Returns a Manifest for the backup
   def backup(system_name, backup_paths,backup_exclusions= [])
-    Nearline::Models::Manifest.backup(
+    Nearline::Models::System.backup(
       system_name,
       string_to_array(backup_paths),
       string_to_array(backup_exclusions)
@@ -110,7 +118,24 @@ module Nearline
   # 
   # Returns an Array of paths restored
   def restore(system_name, latest_date_time = Time.now)
-    Nearline::Models::Manifest.restore_all_missing(system_name, latest_date_time)
+    Nearline::Models::System.restore_all_missing(system_name, latest_date_time)
+  end
+  
+  
+  # Return the nearline version of the database
+  def schema_version
+    Nearline::Models::Block.connection.select_value(
+      "select version from nearline_version"
+    )
+  end
+  
+  # Returns true only if the Nearline version matches the schema
+  def version_check?
+    Nearline::VERSION == schema_version()
+  end
+  
+  class SchemaVersionException < Exception
+    
   end
   
 end

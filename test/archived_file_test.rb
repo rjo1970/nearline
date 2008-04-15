@@ -12,9 +12,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def manifest(name = 'foo')
-    m = Nearline::Models::Manifest.new(:system_name => name)
-    m.save
-    m
+    Nearline::Models::Manifest.new_for_name(name)
   end
   
   def create_for(name)

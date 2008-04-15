@@ -26,15 +26,22 @@ module Nearline
       
       has_and_belongs_to_many :archived_files
       has_many :logs
+      belongs_to :system
       
       # Just needed when you create a manifest
       attr_accessor :backup_paths
       # Just needed when you create a manifest
       attr_accessor :backup_exclusions
+            
+      def self.new_for_name(system_name)
+        system = System.for_name(system_name)
+        system.manifests << m = Nearline::Models::Manifest.new
+        system.save!
+        m        
+      end
       
-      # Underlying implementation of Nearline.backup
-      def self.backup(system_name, backup_paths, backup_exclusions)
-        manifest = self.new(:system_name => system_name)
+      def self.backup(system, backup_paths, backup_exclusions)
+        manifest = self.new(:system => system)
         manifest.save!
         
         FileFinder.recurse(backup_paths, backup_exclusions) do |file_name|
@@ -55,20 +62,8 @@ module Nearline
         manifest
       end
       
-      # Find the latest Manifest for a system
-      # given the latest_date_time as an upper limit
-      def self.latest_for(system_name, latest_date_time = Time.now)
-        m_result = find(:first,
-          :conditions => 
-            ["system_name = ? and created_at <= ?",
-            system_name, latest_date_time],
-          :order => "created_at desc"
-        )
-        raise "No manifest found" if m_result.nil?
-        m_result        
-      end
       
-      # Find all Manifest entries which have never finished.
+      # Find all Manifest entries (across all Systems) which have never finished.
       # 
       # They are:
       # * Currently under-way
@@ -77,8 +72,8 @@ module Nearline
         self.find_all_by_completed_at(nil)
       end
       
-      def self.restore_all_missing(system_name, latest_date_time = Time.now)
-        manifest = latest_for(system_name, latest_date_time)
+      def self.restore_all_missing(system, latest_date_time = Time.now)
+        manifest = system.latest_manifest_as_of(latest_date_time)
         manifest.restore_all_missing
       end
       
@@ -124,7 +119,7 @@ module Nearline
       # A simple string reporting the performance of the manifest
       def summary
         completed = (completed_at.nil?) ? "DNF" : completed_at
-        "#{system_name}; started: #{created_at}; finished: #{completed}; " +
+        "#{system.name} started: #{created_at}; finished: #{completed}; " +
           "#{archived_files.size} files; #{logs.size} Errors reported"
       end
       

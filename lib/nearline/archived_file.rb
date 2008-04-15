@@ -7,7 +7,9 @@ module Nearline
       require 'fileutils'
       
       belongs_to :file_content
+      belongs_to :system
       has_and_belongs_to_many :manifests
+      
             
       def self.create_for(file_path, manifest)        
         file_information = FileInformation.new(file_path, manifest)
@@ -16,8 +18,10 @@ module Nearline
         return nil if file_information.path_hash.nil?
 
         # If we find an exising entry, use it
-        hit = self.find_by_path_hash(file_information.path_hash)
-        return hit unless hit.nil?
+        hash = manifest.system.archived_file_lookup_hash
+        hit = hash[file_information.path_hash]
+        #hit = self.find_by_path_hash(file_information.path_hash)
+        return ArchivedFile.find(hit) unless hit.nil?
         
         # We need to create a record for either a directory or file
         archived_file = ArchivedFile.new(
@@ -63,7 +67,7 @@ module Nearline
 
         def generate_path_hash
           return nil if @stat.nil?          
-          target = [@manifest.system_name, 
+          target = [@manifest.system.name, 
             @file_path,
             @stat.uid,
             @stat.gid,
@@ -80,7 +84,7 @@ module Nearline
         def build_parameters
           return nil if @stat.nil?
           {
-            :system_name => @manifest.system_name,
+            :system => @manifest.system,
             :path => @file_path,
             :path_hash => @path_hash,
             :file_content => file_content_entry_for_files_only,
