@@ -14,20 +14,37 @@ class NearlineModuleTest < Test::Unit::TestCase
     @hash = YAML.load_file("config/database.yml")['test']
   end
     
-#  def test_soft_connect_from_string
-#    Nearline::Models::Block.expects(:establish_connection)
-#    Nearline.connect 'test'
-#  end
-#  
-#  def test_soft_connect_from_hash
-#    Nearline::Models::Block.expects(:establish_connection)
-#    Nearline.connect(@hash)
-#  end
-#  
-#  def test_connect_from_hash
-#    ActiveRecord::Base.expects(:establish_connection)
-#    Nearline.connect!(@hash)    
-#  end
+  def test_soft_connect_from_string
+    Nearline::Models::Block.expects(:establish_connection)
+    Nearline.connect 'test'
+  end
+  
+  def test_soft_connect_from_hash
+    Nearline::Models::Block.expects(:establish_connection)
+    Nearline.connect(@hash)
+  end
+  
+  def test_connect_from_hash
+    ActiveRecord::Base.expects(:establish_connection)
+    Nearline.connect!(@hash)    
+  end
+  
+  def test_bakup_with_no_domain
+    begin
+      Nearline.backup("foo", $temp_path)
+      flunk "Expected SchemaVersionException"
+    rescue Nearline::SchemaVersionException
+    end
+  end
+  
+  def test_restore_with_no_domain
+    begin
+      Nearline.restore("foo")
+      flunk "Expected SchemaVersionException"
+    rescue Nearline::SchemaVersionException
+    end    
+  end
+  
   
   # A single, end-to-end integration test.  The individual
   # pieces are tested elsewhere

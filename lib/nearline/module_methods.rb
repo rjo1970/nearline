@@ -4,7 +4,7 @@ module Nearline
   # VERSION of the software
   VERSION = "0.0.4"
   
-  # Every model using an ActiveRecord connection
+  # Every Nearline Model using an ActiveRecord connection
   AR_MODELS = [
     Nearline::Models::ArchivedFile,
     Nearline::Models::Block,
@@ -45,10 +45,6 @@ module Nearline
     unless Nearline::Models::Block.table_exists?
       Nearline::Models.generate_schema
     end
-    
-    unless version_check?
-      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
-    end    
   end
   
   # Establishes a connection only to the Nearline ActiveDirectory models
@@ -77,11 +73,6 @@ module Nearline
     AR_MODELS.each do |m|
       m.establish_connection(hash)
     end
-
-    unless version_check?
-      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
-    end
-
   end
   
   # Performs a backup labeled for system_name,
@@ -94,6 +85,9 @@ module Nearline
   # 
   # Returns a Manifest for the backup
   def backup(system_name, backup_paths,backup_exclusions= [])
+    unless version_check?
+      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+    end    
     Nearline::Models::System.backup(
       system_name,
       string_to_array(backup_paths),
@@ -118,15 +112,22 @@ module Nearline
   # 
   # Returns an Array of paths restored
   def restore(system_name, latest_date_time = Time.now)
+    unless version_check?
+      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+    end    
     Nearline::Models::System.restore_all_missing(system_name, latest_date_time)
   end
   
   
   # Return the nearline version of the database
   def schema_version
-    Nearline::Models::Block.connection.select_value(
-      "select version from nearline_version"
-    )
+    begin
+      return Nearline::Models::Block.connection.select_value(
+        "select version from nearline_version"
+      )
+    rescue
+      return ""
+    end    
   end
   
   # Returns true only if the Nearline version matches the schema
