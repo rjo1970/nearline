@@ -20,8 +20,12 @@ module Nearline
         # If we find an exising entry, use it
         hash = manifest.system.archived_file_lookup_hash
         hit = hash[file_information.path_hash]
-        #hit = self.find_by_path_hash(file_information.path_hash)
-        return ArchivedFile.find(hit) unless hit.nil?
+
+        unless hit.nil?
+          af = ArchivedFile.find(hit)
+          manifest.archived_files << af
+          return af
+        end
         
         # We need to create a record for either a directory or file
         archived_file = ArchivedFile.new(
@@ -31,6 +35,7 @@ module Nearline
         # Find a new directory
         if (file_information.is_directory)
           archived_file.save!
+          manifest.archived_files << archived_file
           return archived_file
         end
         
@@ -39,6 +44,7 @@ module Nearline
           [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
         archived_file = archived_file.persist(manifest)
         archived_file.save! unless archived_file.nil?
+        manifest.archived_files << archived_file
         archived_file
         
         # TODO: Symbolic links, block devices, ...?

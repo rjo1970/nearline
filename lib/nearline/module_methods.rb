@@ -4,17 +4,12 @@ module Nearline
   # VERSION of the software
   VERSION = "0.0.4"
   
-  # Every Nearline Model using an ActiveRecord connection
-  AR_MODELS = [
-    Nearline::Models::ArchivedFile,
-    Nearline::Models::Block,
-    Nearline::Models::FileContent,
-    Nearline::Models::System,
-    Nearline::Models::Manifest,
-    Nearline::Models::Sequence,
-    Nearline::Models::Log
-  ]
-  
+  # Array of every Nearline Model using an ActiveRecord connection
+  AR_MODELS = Nearline::Models.constants.map do |m|
+    Nearline::Models.const_get(m)
+  end.select do |c|
+    c.superclass == ActiveRecord::Base
+  end
   
   # Establishes the ActiveRecord connection
   # 
@@ -86,22 +81,25 @@ module Nearline
   # Returns a Manifest for the backup
   def backup(system_name, backup_paths,backup_exclusions= [])
     unless version_check?
-      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+      raise SchemaVersionException.for_version(schema_version)
     end    
     Nearline::Models::System.backup(
       system_name,
-      string_to_array(backup_paths),
-      string_to_array(backup_exclusions)
+      Utilities.string_to_array(backup_paths),
+      Utilities.string_to_array(backup_exclusions)
     )
   end
-     
-  def string_to_array(x)
-    if x.is_a? String
-      return [x]
+  
+  module Utilities
+    module_function
+    def self.string_to_array(x)
+      if x.is_a? String
+        return [x]
+      end
+      x      
     end
-    x
   end
-
+  
   # Restore all missing files from the latest backup
   # for system_name and no earlier than latest_date_time
   # 
@@ -113,7 +111,7 @@ module Nearline
   # Returns an Array of paths restored
   def restore(system_name, latest_date_time = Time.now)
     unless version_check?
-      raise SchemaVersionException.new("Schema #{schema_version} is not the same version as nearline #{Nearline::VERSION}!")
+      raise SchemaVersionException.for_version(schema_version)
     end    
     Nearline::Models::System.restore_all_missing(system_name, latest_date_time)
   end
@@ -136,7 +134,10 @@ module Nearline
   end
   
   class SchemaVersionException < Exception
-    
+    def self.for_version(v)
+      SchemaVersionException.new("Schema #{v} is not the same "+
+          "version as nearline #{Nearline::VERSION}!")
+    end
   end
   
 end
