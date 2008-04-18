@@ -4,9 +4,9 @@ module Nearline
   module Models
 
     # Represents a unit of file content which may be
-    # freely shared across the repository
+    # freely shared across the repository.
     # Its sole responsibility is to preserve and provide
-    # content access
+    # content access.
     class Block < ActiveRecord::Base
       require "zlib"
     

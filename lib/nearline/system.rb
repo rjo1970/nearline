@@ -1,6 +1,10 @@
 module Nearline
   module Models
     
+    # The System has the responsibility of identifying
+    # what the target was for a backup and relating all
+    # Manifests and ArchivedFiles associated with the
+    # target system.
     class System < ActiveRecord::Base
 
       has_many :manifests

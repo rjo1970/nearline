@@ -1,18 +1,17 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'nearline'
 
-require 'test/unit'
-require 'mocha'
+require 'flexmock/test_unit'
 require 'active_record'
 
 class SchemaTest < Test::Unit::TestCase
   def test_schema_generated
-    ActiveRecord::Schema.expects(:define)
+    flexmock(ActiveRecord::Schema).should_receive(:define).once
     Nearline::Models.generate_schema
   end
   
   def test_schema_destroyed
-    ActiveRecord::Schema.expects(:define).at_least(2)
+    flexmock(ActiveRecord::Schema).should_receive(:define).at_least.twice
     Nearline::Models.generate_schema
     Nearline::Models.destroy_schema
   end

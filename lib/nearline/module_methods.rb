@@ -31,15 +31,14 @@ module Nearline
       ActiveRecord::Base.establish_connection(
         YAML.load_file("config/database.yml")[config]
       )
-    end
-    
-    if (config.is_a? Hash)
+    elsif (config.is_a? Hash)
       ActiveRecord::Base.establish_connection(config)      
     end
     
     unless Nearline::Models::Block.table_exists?
       Nearline::Models.generate_schema
     end
+    nil
   end
   
   # Establishes a connection only to the Nearline ActiveDirectory models
@@ -68,6 +67,7 @@ module Nearline
     AR_MODELS.each do |m|
       m.establish_connection(hash)
     end
+    nil
   end
   
   # Performs a backup labeled for system_name,
@@ -79,6 +79,16 @@ module Nearline
   # been established
   # 
   # Returns a Manifest for the backup
+  #
+  # === Examples
+  # Backup my laptop, recursing my home folder, skipping .svn folders
+  # 
+  # Nearline.backup('my_laptop','/home/me', '/\\.svn/')
+  #
+  # Backup my laptop, recurse /home/me and /var/svn
+  # 
+  # Nearline.backup('my_laptop', ['/home/me', '/var/svn']
+  #
   def backup(system_name, backup_paths,backup_exclusions= [])
     unless version_check?
       raise SchemaVersionException.for_version(schema_version)
@@ -101,9 +111,9 @@ module Nearline
   end
   
   # Restore all missing files from the latest backup
-  # for system_name and no earlier than latest_date_time
+  # for system_name and backed up no later than latest_date_time
   # 
-  # All updated or existing files are left alone
+  # All modified or existing files are left alone
   # 
   # Expects the Nearline database connection has already
   # been established
@@ -117,7 +127,7 @@ module Nearline
   end
   
   
-  # Return the nearline version of the database
+  # Returns the nearline version of the database
   def schema_version
     begin
       return Nearline::Models::Block.connection.select_value(

@@ -1,7 +1,7 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'nearline'
 
-require 'test/unit'
+require 'flexmock/test_unit'
 require 'active_record'
 require 'utilities'
 
@@ -80,6 +80,34 @@ class ArchivedFileTest < Test::Unit::TestCase
     af = Nearline::Models::ArchivedFile.create_for($temp_path, manifest)
     af.restore(:path => $temp_path+"/foo")
     assert File.directory?($temp_path+"/foo")
+  end
+  
+  def test_size_check
+    f = flexmock(Nearline::Models::FileContent.new)
+    f.should_receive(:file_size).and_return(123)
+    f.should_receive(:file_size=).once
+
+    m = flexmock(Nearline::Models::Manifest)
+    m.should_receive(:add_log).once
+    
+    af = Nearline::Models::ArchivedFile.new
+    af.file_content = f
+    
+    af.size_check(456, m)
+  end
+  
+  def test_verify_content
+    f = flexmock(Nearline::Models::FileContent.new)
+    f.should_receive(:verified?).and_return(false).once
+    f.should_receive(:orphan_check)
+    
+    m = flexmock(Nearline::Models::Manifest)
+    m.should_receive(:add_log).once
+    
+    af = Nearline::Models::ArchivedFile.new
+    af.file_content = f
+    
+    af.verify_content(m)
   end
   
   def test_restore_file_to_redirected_path

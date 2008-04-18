@@ -1,7 +1,7 @@
 module Nearline
   module Models
 
-    # Has the responsibility of identifying and
+    # Has the responsibility of identifying, restoring and
     # verifying content
     class FileContent < ActiveRecord::Base
       has_many :sequences

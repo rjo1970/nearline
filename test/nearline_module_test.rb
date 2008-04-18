@@ -1,35 +1,41 @@
 $:.unshift File.join(File.dirname(__FILE__), "..", "lib")
 require 'nearline'
 
-require 'test/unit'
+require 'flexmock/test_unit'
 require 'utilities'
 require 'fileutils'
 
 class NearlineModuleTest < Test::Unit::TestCase
   
   def setup
+    ActiveRecord::Base.clear_active_connections!
+    @hash ||= YAML.load_file("config/database.yml")['test']    
+  end
+  
+  def database_setup
     Nearline.connect! 'test'
     Nearline::Models.destroy_schema
     Nearline::Models::Block.clear_active_connections!
-    @hash = YAML.load_file("config/database.yml")['test']
   end
     
   def test_soft_connect_from_string
-    Nearline::Models::Block.expects(:establish_connection)
+    flexmock(Nearline::Models::Block).should_receive(:establish_connection).once
     Nearline.connect 'test'
   end
   
   def test_soft_connect_from_hash
-    Nearline::Models::Block.expects(:establish_connection)
+    flexmock(Nearline::Models::Block).should_receive(:establish_connection).once
     Nearline.connect(@hash)
   end
   
   def test_connect_from_hash
-    ActiveRecord::Base.expects(:establish_connection)
+    flexmock(ActiveRecord::Base).should_receive(:establish_connection).once
+    flexmock(Nearline::Models).should_receive(:generate_schema)
     Nearline.connect!(@hash)    
   end
   
   def test_bakup_with_no_domain
+    database_setup
     begin
       Nearline.backup("foo", $temp_path)
       flunk "Expected SchemaVersionException"
@@ -38,6 +44,7 @@ class NearlineModuleTest < Test::Unit::TestCase
   end
   
   def test_restore_with_no_domain
+    database_setup
     begin
       Nearline.restore("foo")
       flunk "Expected SchemaVersionException"
@@ -49,6 +56,7 @@ class NearlineModuleTest < Test::Unit::TestCase
   # A single, end-to-end integration test.  The individual
   # pieces are tested elsewhere
   def test_backup_and_restore
+    database_setup
     Nearline.connect! 'test'
     files_to_back_up = [$temp_path]
     things_to_skip = ['\\.class$']
@@ -63,6 +71,7 @@ class NearlineModuleTest < Test::Unit::TestCase
   end
   
   def test_no_dangling_records
+    database_setup
     Nearline.connect! 'test'
     files_to_back_up = $temp_path
     m1 = Nearline.backup("baz", files_to_back_up)
