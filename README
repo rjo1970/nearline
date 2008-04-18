@@ -19,6 +19,9 @@ and prevent redundancy in the backup stream.
     Nearline.connect 'backup'
     Nearline.restore 'my_laptop'
 
+== API
+See lib/nearline/module_methods.rb documentation for API
+
 == Author
    Robert J. Osborne <rjo1970 at gmail.com>
 
