@@ -52,6 +52,15 @@ module Nearline
         Manifest.restore_all_missing(self, latest_date_time)
       end
       
+      def self.what_would_restore(system_name, latest_date_time)
+        system = self.for_name(system_name)
+        system.what_would_restore(latest_date_time)
+      end
+      
+      def what_would_restore(latest_date_time)
+        Manifest.what_would_restore(self, latest_date_time)
+      end
+      
       def archived_file_lookup_hash
         return @lookup_hash if !@lookup_hash.nil?
         @lookup_hash = {}

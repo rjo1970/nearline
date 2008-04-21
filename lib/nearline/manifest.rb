@@ -73,17 +73,24 @@ module Nearline
       
       def self.restore_all_missing(system, latest_date_time = Time.now)
         manifest = system.latest_manifest_as_of(latest_date_time)
-        manifest.restore_all_missing
+        manifest.iterate_all_missing do |af|
+          af.restore
+        end 
       end
       
-      # Restore all missing files from this manifest back to the filesystem
-      def restore_all_missing
+      def self.what_would_restore(system, latest_date_time = Time.now)
+        manifest = system.latest_manifest_as_of(latest_date_time)        
+        manifest.iterate_all_missing {}
+      end
+      
+      # Iterate all missing files from this manifest, yielding each
+      def iterate_all_missing
         files_restored = []
         self.archived_files.each do |af|
           begin
             File.stat(af.path)
           rescue
-            af.restore
+            yield af
             files_restored << af.path
           end
         end

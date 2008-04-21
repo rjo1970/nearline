@@ -55,7 +55,7 @@ class NearlineModuleTest < Test::Unit::TestCase
   
   # A single, end-to-end integration test.  The individual
   # pieces are tested elsewhere
-  def test_backup_and_restore
+  def test_full_integration
     database_setup
     Nearline.connect! 'test'
     files_to_back_up = [$temp_path]
@@ -65,6 +65,9 @@ class NearlineModuleTest < Test::Unit::TestCase
     
     # ---------------------------------------------
     FileUtils.rm_r $temp_path
+    
+    stuff = Nearline.what_would_restore("baz")
+    assert stuff.include?($readme)
     
     Nearline.restore("baz")
     assert File.exists?($readme)

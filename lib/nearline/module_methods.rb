@@ -2,7 +2,7 @@ module Nearline
   module_function
 
   # VERSION of the software
-  VERSION = "0.0.4"
+  VERSION = "0.0.5"
   
   # Array of every Nearline Model using an ActiveRecord connection
   AR_MODELS = Nearline::Models.constants.map do |m|
@@ -90,9 +90,7 @@ module Nearline
   # Nearline.backup('my_laptop', ['/home/me', '/var/svn']
   #
   def backup(system_name, backup_paths,backup_exclusions= [])
-    unless version_check?
-      raise SchemaVersionException.for_version(schema_version)
-    end    
+    raise_failing_version_check
     Nearline::Models::System.backup(
       system_name,
       Utilities.string_to_array(backup_paths),
@@ -120,11 +118,17 @@ module Nearline
   # 
   # Returns an Array of paths restored
   def restore(system_name, latest_date_time = Time.now)
-    unless version_check?
-      raise SchemaVersionException.for_version(schema_version)
-    end    
+    raise_failing_version_check
     Nearline::Models::System.restore_all_missing(system_name, latest_date_time)
   end
+  
+  # Returns an array of paths that would be restored given the provided
+  # parameters
+  def what_would_restore(system_name, latest_date_time = Time.now)
+    raise_failing_version_check
+    Nearline::Models::System.what_would_restore(system_name, latest_date_time)
+  end
+  
   
   
   # Returns the nearline version of the database
@@ -136,6 +140,12 @@ module Nearline
     rescue
       return ""
     end    
+  end
+  
+  def raise_failing_version_check
+    unless version_check?
+      raise SchemaVersionException.for_version(schema_version)
+    end        
   end
   
   # Returns true only if the Nearline version matches the schema
