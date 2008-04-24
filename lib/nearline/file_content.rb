@@ -61,26 +61,5 @@ module Nearline
       end
     end
     
-    class FileSequencer
-      def initialize(file_content)
-        @inc = 0
-        @file_content = file_content
-        @file_content.save!
-      end
-      
-      def preserve_content(content)
-        @inc += 1
-        block_id = Block.id_for_content(content)
-        sequence = Sequence.new(
-          :sequence => @inc,
-          :file_content_id => @file_content.id,
-          :block_id => block_id
-        )
-        sequence.save!
-        sequence        
-      end
-            
-    end
-      
   end
 end

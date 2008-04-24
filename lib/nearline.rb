@@ -15,5 +15,8 @@ require 'nearline/archived_file'
 require 'nearline/log'
 require 'nearline/manifest'
 
+# Non-AR model
+require 'nearline/file_sequencer'
+
 # Static methods on Nearline
 require 'nearline/module_methods'

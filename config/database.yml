@@ -1,3 +1,7 @@
 test:
-  adapter: sqlite3
-  database: data/test_nearline.db
+  adapter: mysql
+  database: test
+  username: root
+  password: devildogs
+  host: localhost
+

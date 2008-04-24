@@ -43,8 +43,10 @@ module Nearline
         archived_file.file_content.file_size = 
           [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
         archived_file = archived_file.persist(manifest)
-        archived_file.save! unless archived_file.nil?
-        manifest.archived_files << archived_file
+        unless archived_file.nil? || archived_file.frozen?
+          archived_file.save!
+          manifest.archived_files << archived_file
+        end
         archived_file
         
         # TODO: Symbolic links, block devices, ...?
@@ -158,20 +160,20 @@ module Nearline
       # won't know that until we complete the process and have to
       # clean up our mess.
       def persist(manifest)
-        whole_file_hash = Digest::SHA1.new
-        file_size = 0
+        seq = nil
         begin
-          file_size = read_file_counting_bytes(whole_file_hash)
+          seq = read_file
         rescue
-          manifest.add_log "Got error '#{$!}' on path: #{self.path}"
+          error = "Got error '#{$!}' on path: #{self.path}"
+          manifest.add_log error
           self.orphan_check
           return nil
         end
-        
-        size_check(file_size, manifest)
+               
+        size_check(seq.file_size, manifest)
         
         # Do we have a unique sequence?
-        key = whole_file_hash.hexdigest
+        key = seq.fingerprint
         return self if unique_sequence_processed?(key, manifest)
                 
         # Handle the case where the sequence is not unique...
@@ -180,19 +182,14 @@ module Nearline
         self
       end
       
-      def read_file_counting_bytes(whole_file_hash)
-        sequencer = FileSequencer.new(self.file_content)
-        file_size = 0
-        buffer = ""
+      def read_file
         File.open(self.path, "rb") do |io|
-          while (!io.eof) do
-            io.read(Block::MAX_SIZE, buffer)
-            file_size += buffer.size
-            whole_file_hash.update(buffer)
-            sequencer.preserve_content(buffer)
+          seq = FileSequencer.new(io, self.file_content)
+          while (!io.eof)
+            seq.persist_segment
           end
+          return seq
         end
-        return file_size
       end
             
       def size_check(file_size, manifest)
