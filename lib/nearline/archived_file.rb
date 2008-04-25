@@ -219,10 +219,15 @@ module Nearline
         false
       end
       
+      # In the special case of an identical sequence existing,
+      # we can safely delete all related sequences and then destroy
+      # the file content object without the (far slower) orphan checking
+      # process
       def clean_up_duplicate_content
-        self.file_content.orphan_check
+        Sequence.delete_all "file_content_id = #{self.file_content.id}"
+        self.file_content.destroy
       end
-      
+
       def replace_content(key)
         self.file_content = FileContent.find_by_fingerprint(key)
         self.save!                

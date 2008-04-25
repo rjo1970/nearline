@@ -4,7 +4,7 @@ module Nearline
     # Has the responsibility of identifying, restoring and
     # verifying content
     class FileContent < ActiveRecord::Base
-      has_many :sequences
+      has_many :sequences, :order => "sequence"
       has_many :archived_files
       
       def orphan_check

@@ -17,7 +17,6 @@ SPEC = Gem::Specification.new do |s|
   s.rubyforge_project = "nearline"
   s.files = FileList["{tests,lib,doc,tasks}/**/*"].exclude("rdoc").to_a
   s.add_dependency("activerecord", '>= 2.0.2')
-  s.add_dependency("ar-extensions", '>= 0.7.0')
   s.require_path = "lib"
   s.autorequire = "nearline"
   s.test_file = "test/nearline_test.rb"

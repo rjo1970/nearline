@@ -50,8 +50,9 @@ module Nearline
       
       def found_fingerprint_map
         f = {}
-        fp_raw = @b.collect {|a| a.fingerprint unless a.nil?}
-#        return f if fp_raw.size == 0
+        fp_raw = []
+        @b.each {|a| fp_raw << a.fingerprint unless a.nil?}
+        return f if fp_raw.size == 0
         fingerprints = fp_raw.collect {|fp| "'#{fp}'"}.join(', ')
         query = "select distinct id, fingerprint from blocks "+
           "where fingerprint in (#{fingerprints})"
@@ -65,11 +66,11 @@ module Nearline
           block = @b[i]
           unless block.nil?
             if f[block.fingerprint]
-              @s << Sequence.new(
+              @s.push(Sequence.new(
                 :sequence => i + @offset + 1,
                 :block_id => f[block.fingerprint],
                 :file_content_id => @file_content.id
-              )
+              ))
               @b[i] = nil
             end
           end
@@ -83,9 +84,11 @@ module Nearline
       end
       
       def attempt_compression_of_remaining_blocks
+        f = {}
         @b.each do |block|
-          if (!block.nil?)
+          unless block.nil? or f[block.fingerprint]
             block.attempt_compression
+            f[block.fingerprint] = true
           end
         end
       end
