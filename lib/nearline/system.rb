@@ -60,16 +60,7 @@ module Nearline
       def what_would_restore(latest_date_time)
         Manifest.what_would_restore(self, latest_date_time)
       end
-      
-      def archived_file_lookup_hash
-        return @lookup_hash if !@lookup_hash.nil?
-        @lookup_hash = {}
-        for af in self.archived_files
-          @lookup_hash[af.path_hash] = af.id
-        end
-        @lookup_hash
-      end
-      
+            
       def before_destroy
         for manifest in self.manifests
           manifest.destroy

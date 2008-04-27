@@ -4,6 +4,7 @@ module Nearline
     # Represents file metadata and possible related FileContent
     # for a single file on a single system
     class ArchivedFile < ActiveRecord::Base
+      require 'digest/sha1'
       require 'fileutils'
       
       belongs_to :file_content
@@ -14,13 +15,17 @@ module Nearline
       def self.create_for(file_path, manifest)        
         file_information = FileInformation.new(file_path, manifest)
 
+        # TODO: Flip this around so we read a bunch of file paths and get
+        # FileInformation objects for them, then hit the database to go
+        # "Shopping" for hits.
+        # 
+        # This would mirror the way blocks are now persisted.
+
         # The path doesn't actually exist and fails a File.stat
         return nil if file_information.path_hash.nil?
 
         # If we find an exising entry, use it
-        hash = manifest.system.archived_file_lookup_hash
-        hit = hash[file_information.path_hash]
-
+        hit = self.find_by_path_hash(file_information.path_hash)
         unless hit.nil?
           af = ArchivedFile.find(hit)
           manifest.archived_files << af
@@ -51,61 +56,7 @@ module Nearline
         
         # TODO: Symbolic links, block devices, ...?
       end
-      
-      class FileInformation
-        attr_reader :path_hash, :stat, :is_directory, :archived_file_parameters
-        def initialize(file_path, manifest)
-          @manifest = manifest
-          @file_path = file_path
-          @stat = read_stat
-          @is_directory = File.directory?(file_path)
-          @path_hash = generate_path_hash
-          @archived_file_parameters = build_parameters
-        end
-
-        def read_stat
-          stat = nil
-          begin
-            stat = File.stat(@file_path)
-          rescue
-            @manifest.add_log("File not found on stat: #{@file_path}")
-          end
-          stat
-        end
-
-        def generate_path_hash
-          return nil if @stat.nil?          
-          target = [@manifest.system.name, 
-            @file_path,
-            @stat.uid,
-            @stat.gid,
-            @stat.mtime.to_i,
-            @stat.mode].join(':')
-          Digest::SHA1.hexdigest(target)
-        end
-        
-        def file_content_entry_for_files_only
-          return FileContent.new unless @is_directory
-          return nil
-        end
-
-        def build_parameters
-          return nil if @stat.nil?
-          {
-            :system => @manifest.system,
-            :path => @file_path,
-            :path_hash => @path_hash,
-            :file_content => file_content_entry_for_files_only,
-            :uid => @stat.uid,
-            :gid => @stat.gid,
-            :mtime => @stat.mtime.to_i,
-            :mode => @stat.mode,
-            :is_directory => @is_directory    
-          }
-        end
-
-      end
-      
+            
       def restore(*args)
         @options = args.extract_options!
         if (self.is_directory)

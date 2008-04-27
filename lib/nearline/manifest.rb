@@ -20,6 +20,62 @@ module Nearline
       end
     end
     
+    # Handles file paths and metadata for a file in a manifest
+    class FileInformation
+      attr_reader :path_hash, :stat, :is_directory, :archived_file_parameters
+      def initialize(file_path, manifest)
+        @manifest = manifest
+        @file_path = file_path
+        @stat = read_stat
+        @is_directory = File.directory?(file_path)
+        @path_hash = generate_path_hash
+        @archived_file_parameters = build_parameters
+      end
+
+      def read_stat
+        stat = nil
+        begin
+          stat = File.stat(@file_path)
+        rescue
+          @manifest.add_log("File not found on stat: #{@file_path}")
+        end
+        stat
+      end
+
+      def generate_path_hash
+        return nil if @stat.nil?          
+        target = [@manifest.system.name, 
+          @file_path,
+          @stat.uid,
+          @stat.gid,
+          @stat.mtime.to_i,
+          @stat.mode].join(':')
+        Digest::SHA1.hexdigest(target)
+      end
+        
+      def file_content_entry_for_files_only
+        return FileContent.new unless @is_directory
+        return nil
+      end
+
+      def build_parameters
+        return nil if @stat.nil?
+        {
+          :system => @manifest.system,
+          :path => @file_path,
+          :path_hash => @path_hash,
+          :file_content => file_content_entry_for_files_only,
+          :uid => @stat.uid,
+          :gid => @stat.gid,
+          :mtime => @stat.mtime.to_i,
+          :mode => @stat.mode,
+          :is_directory => @is_directory    
+        }
+      end
+
+    end
+
+    
     # A Manifest represents the corpus of ArchivedFiles and
     # set of Log messages resulting from a backup attempt
     class Manifest < ActiveRecord::Base

@@ -9,6 +9,7 @@ SPEC = Gem::Specification.new do |s|
   s.version = Nearline::VERSION
   s.author = "Robert J. Osborne"
   s.email = "rjo1970@gmail.com"
+  s.homepage = "http://rubyforge.org/projects/nearline"
   s.summary = "Nearline is a near-line backup and recovery solution"
   s.description = %{
     Nearline is a library to make managing near-line file repositories
@@ -18,7 +19,6 @@ SPEC = Gem::Specification.new do |s|
   s.files = FileList["{tests,lib,doc,tasks}/**/*"].exclude("rdoc").to_a
   s.add_dependency("activerecord", '>= 2.0.2')
   s.require_path = "lib"
-  s.autorequire = "nearline"
   s.test_file = "test/nearline_test.rb"
   s.has_rdoc = true
 end
