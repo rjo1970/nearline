@@ -57,7 +57,7 @@ module Nearline
         system.what_would_restore(latest_date_time)
       end
       
-      def what_would_restore(latest_date_time)
+      def what_would_restore(latest_date_time = Time.now)
         Manifest.what_would_restore(self, latest_date_time)
       end
             

@@ -18,7 +18,7 @@ module Nearline
     end
     
     def empty_schema
-      Nearline::Models::Manifest.destroy_all
+      Nearline::Models::System.destroy_all
     end
     
     def generate_schema
@@ -99,7 +99,7 @@ module Nearline
           t.column :version, :string
         end
         
-        execute "insert into nearline_version (version) values ('#{Nearline::VERSION}')"        
+        execute "insert into nearline_version (version) values ('#{Nearline::DB_VERSION}')"        
       end
     end
 

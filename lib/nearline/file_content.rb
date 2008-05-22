@@ -23,22 +23,25 @@ module Nearline
         return hit.nil?
       end
       
-      def restore_to(io)
+      private
+      
+      def each_sequence
         sequences.each do |seq|
           block = Block.find(seq.block_id)
-          io.write(block.content)
+          yield block
         end
+      end
+      
+      public
+      
+      def restore_to(io)
+        each_sequence { |block| io.write(block.content) }
       end
     
       def verified?
-        if (!self.verified_at.nil?)
-          return true
-        end
+        return true if (!self.verified_at.nil?)
         whole_file_hash = Digest::SHA1.new
-        sequences.each do |seq|
-          block = Block.find(seq.block_id)
-          whole_file_hash.update(block.content)
-        end
+        each_sequence { |block| whole_file_hash.update(block.content) }
         if fingerprint == whole_file_hash.hexdigest
           self.verified_at = Time.now
           self.save!
@@ -46,7 +49,6 @@ module Nearline
         end
         false
       end
-      
       
     end
     

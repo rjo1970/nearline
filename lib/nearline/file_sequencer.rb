@@ -1,12 +1,13 @@
 module Nearline
   module Models
-                
+
     # Used for mass block entry and sequencing
     class FileSequencer      
       attr_reader :file_size
     
       # Number of blocks to serialize in a batch
-      MAX_BLOCKS = 1600;
+      @@max_blocks = 500;
+      cattr_accessor :max_blocks
       
       def initialize(io, file_content)
         @io = io
@@ -40,7 +41,7 @@ module Nearline
       def clear_for_next_persist
         @s = []
         @b = []
-        @offset += MAX_BLOCKS
+        @offset += @@max_blocks
       end
     
       def sequence_known_blocks
@@ -67,10 +68,10 @@ module Nearline
           unless block.nil?
             if f[block.fingerprint]
               @s.push(Sequence.new(
-                :sequence => i + @offset + 1,
-                :block_id => f[block.fingerprint],
-                :file_content_id => @file_content.id
-              ))
+                  :sequence => i + @offset + 1,
+                  :block_id => f[block.fingerprint],
+                  :file_content_id => @file_content.id
+                ))
               @b[i] = nil
             end
           end
@@ -92,7 +93,7 @@ module Nearline
           end
         end
       end
-      
+
       def insert_new_blocks
         f = {}
         @b.each do |b|
@@ -102,15 +103,22 @@ module Nearline
           end
         end
       end
-                  
+      
       def pull_blocks
         count = 0
-        while (!@io.eof && count < MAX_BLOCKS)
+        while (!@io.eof && count < @@max_blocks)
           count += 1
-          buffer = @io.read(Block::MAX_SIZE)
+          
+          # Move to Block
+          buffer = @io.read(Block.max_block_size)
+          
           @file_size += buffer.size
+          
+          # Move to Block
           blk = Block.new(:bulk_content => buffer)
           @whole_file_hash.update(buffer)
+          
+          # Move to Block
           blk.calculate_fingerprint
           @b << blk          
         end

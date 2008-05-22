@@ -11,46 +11,30 @@ module Nearline
       belongs_to :system
       has_and_belongs_to_many :manifests
       
-            
-      def self.create_for(file_path, manifest)        
-        file_information = FileInformation.new(file_path, manifest)
-
-        # TODO: Flip this around so we read a bunch of file paths and get
-        # FileInformation objects for them, then hit the database to go
-        # "Shopping" for hits.
-        # 
-        # This would mirror the way blocks are now persisted.
-
-        # The path doesn't actually exist and fails a File.stat
+           
+      def self.create_for(file_information)
+        # The path doesn't actually exist and fails a File.lstat
         return nil if file_information.path_hash.nil?
-
-        # If we find an exising entry, use it
-        hit = self.find_by_path_hash(file_information.path_hash)
-        unless hit.nil?
-          af = ArchivedFile.find(hit)
-          manifest.archived_files << af
-          return af
-        end
         
         # We need to create a record for either a directory or file
         archived_file = ArchivedFile.new(
           file_information.archived_file_parameters
         )
-        
+
         # Find a new directory
         if (file_information.is_directory)
           archived_file.save!
-          manifest.archived_files << archived_file
+          file_information.manifest.archived_files << archived_file
           return archived_file
         end
         
-        # Find a new file that needs persisted
+        # Find a new file that needs persisted        
         archived_file.file_content.file_size = 
           [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
-        archived_file = archived_file.persist(manifest)
+        archived_file = archived_file.persist(file_information.manifest)
         unless archived_file.nil? || archived_file.frozen?
           archived_file.save!
-          manifest.archived_files << archived_file
+          file_information.manifest.archived_files << archived_file
         end
         archived_file
         

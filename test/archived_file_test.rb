@@ -15,14 +15,15 @@ class ArchivedFileTest < Test::Unit::TestCase
     Nearline::Models::Manifest.new_for_name(name)
   end
   
-  def create_for(name)
-    Nearline::Models::ArchivedFile.create_for($readme, manifest(name))
+  def create_for(name = 'foo')
+    file_information = Nearline::Models::FileInformation.new($readme, manifest(name))
+    Nearline::Models::ArchivedFile.create_for(file_information)
   end
 
   def test_archiving_a_file_creates_archived_file_and_content_records
     archived_files = Nearline::Models::ArchivedFile.count
     file_contents = Nearline::Models::FileContent.count
-    af = create_for("foo")
+    af = create_for
     assert_equal(archived_files+1, Nearline::Models::ArchivedFile.count)
     assert_equal(file_contents+1, Nearline::Models::FileContent.count)
     archived_file = Nearline::Models::ArchivedFile.find(af.id)
@@ -34,21 +35,10 @@ class ArchivedFileTest < Test::Unit::TestCase
     assert_equal archived_file.mode.class, Fixnum 
     assert_equal 40, archived_file.file_content.fingerprint.length
   end
-  
-  def test_identical_files_share_file_content
-    archived_file_a = create_for("foo")
-    archived_file_a2 = create_for("bar")
-    assert_equal archived_file_a.file_content, archived_file_a2.file_content
-  end
-  
-  def test_subsequent_manifests_files_share_file_content
-    archived_file_a = create_for("foo")
-    archived_file_a2 = create_for("foo")
-    assert_equal archived_file_a.file_content, archived_file_a2.file_content
-  end
-    
+   
   def test_archiving_the_test_directory
-    directory = Nearline::Models::ArchivedFile.create_for($temp_path, manifest)
+    file_information = Nearline::Models::FileInformation.new($temp_path, manifest)
+    directory = Nearline::Models::ArchivedFile.create_for(file_information)
     assert directory.is_directory?
   end
   
@@ -56,7 +46,7 @@ class ArchivedFileTest < Test::Unit::TestCase
     blocks = Nearline::Models::Block.count
     sequences = Nearline::Models::Sequence.count
     file_contents = Nearline::Models::FileContent.count
-    af = create_for("foo")
+    af = create_for
     af.destroy
     assert_equal file_contents, Nearline::Models::FileContent.count, "file contents not emptied"
     assert_equal sequences, Nearline::Models::Sequence.count, "sequences not emptied"
@@ -64,7 +54,8 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def test_missing_file
-    af = Nearline::Models::ArchivedFile.create_for("does_not_exist", manifest)
+    file_information = Nearline::Models::FileInformation.new("does_not_exist", manifest)
+    af = Nearline::Models::ArchivedFile.create_for(file_information)
     assert_nil(af)
   end
   
@@ -77,7 +68,8 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def test_restore_directory_to_redirected_path
-    af = Nearline::Models::ArchivedFile.create_for($temp_path, manifest)
+    file_information = Nearline::Models::FileInformation.new($temp_path, manifest)
+    af = Nearline::Models::ArchivedFile.create_for(file_information)
     af.restore(:path => $temp_path+"/foo")
     assert File.directory?($temp_path+"/foo")
   end

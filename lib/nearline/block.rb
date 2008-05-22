@@ -12,12 +12,21 @@ module Nearline
     
       has_many :sequences
       
-      MAX_SIZE = (64 * 1024)-1
+      # Maximum block size in bytes
+      @@max_block_size = (64 * 1024)-1
+      cattr_accessor :max_block_size
+      
+      # Level of block compression attempted
+      # 0 = skip compression entirely
+      @@block_compression_level = 5
+      cattr_accessor :block_compression_level
       
       def attempt_compression
-        return if (self.is_compressed)
-        # TODO: Have a bump-the-compression option, here?
-        candidate_content = Zlib::Deflate.deflate(self.bulk_content)
+        return if (self.is_compressed || @@block_compression_level == 0)
+        candidate_content = Zlib::Deflate.deflate(
+          self.bulk_content,
+          @@block_compression_level
+        )
         if candidate_content.length < self.bulk_content.length
           self.is_compressed = true
           self.bulk_content = candidate_content
@@ -37,17 +46,7 @@ module Nearline
         end
         @content = self.bulk_content
       end
-      
-      def self.for_content(x)
-        block = Models::Block.new(:bulk_content => x)
-        block.calculate_fingerprint
-        found = find_by_fingerprint(block.fingerprint)
-        return found if !found.nil?
-        block.attempt_compression
-        block.save!
-        block
-      end
-      
+            
       def orphan_check
         if self.sequences.size == 0
           self.destroy

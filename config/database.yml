@@ -1,4 +1,5 @@
+# NOTE: while sqlite3 will pass all tests, I recommend mysql for actual use
+# due to blob corruption on other platforms, including sqlite3
 test:
   adapter: sqlite3
   database: data/test.db
-

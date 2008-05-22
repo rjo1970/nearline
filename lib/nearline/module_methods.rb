@@ -1,8 +1,10 @@
 module Nearline  
   module_function
 
-  # VERSION of the software
+  # Version of the software
   VERSION = "0.0.5"
+  # Last version that changed the database structure
+  DB_VERSION = "0.0.4"
   
   # Array of every Nearline Model using an ActiveRecord connection
   AR_MODELS = Nearline::Models.constants.map do |m|
@@ -20,6 +22,8 @@ module Nearline
   # 
   # Stomps on any ActiveRecord::Base.establish_connection you might
   # have already established.
+  # 
+  # ***NOTE: MYSQL is the only recommended database at this time.***
   # 
   # === Examples
   # Nearline.connect!({:adapter => 'sqlite3', :database => 'data/sqlite.db'})
@@ -49,6 +53,9 @@ module Nearline
   # 
   # Accepts a Hash to establish the connection or
   # a String referring to an entry in config/database.yml.
+  # 
+  # ***NOTE: MYSQL is the only recommended database at this time.***
+  # 
   # === Examples
   # Nearline.connect({:adapter => 'sqlite3', :database => 'data/sqlite.db'})
   # 
@@ -128,9 +135,7 @@ module Nearline
     raise_failing_version_check
     Nearline::Models::System.what_would_restore(system_name, latest_date_time)
   end
-  
-  
-  
+    
   # Returns the nearline version of the database
   def schema_version
     begin
@@ -150,13 +155,15 @@ module Nearline
   
   # Returns true only if the Nearline version matches the schema
   def version_check?
-    Nearline::VERSION == schema_version()
+    Nearline::DB_VERSION == schema_version()
   end
   
   class SchemaVersionException < Exception
     def self.for_version(v)
-      SchemaVersionException.new("Schema #{v} is not the same "+
-          "version as nearline #{Nearline::VERSION}!")
+      SchemaVersionException.new(<<-END_ERROR)
+Schema #{v} is not the same version as nearline database 
+version #{Nearline::DB_VERSION} used in Nearline #{Nearline::VERSION}!        
+      END_ERROR
     end
   end
   

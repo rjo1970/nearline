@@ -12,7 +12,7 @@ class ManifestTest < Test::Unit::TestCase
     Nearline::Models.generate_schema
     @system = Nearline::Models::System.for_name("foo")
   end
-   
+  
   def test_manifest
     manifest = Nearline::Models::Manifest.backup(@system,[$readme],["won't match anything"])
     assert_equal 1, manifest.archived_files.size
@@ -43,7 +43,6 @@ class ManifestTest < Test::Unit::TestCase
   def test_summary
     m = Nearline::Models::Manifest.backup(@system,[$readme],[])
     assert m.summary.size > 0
-    puts m.summary
   end
   
   def test_manifest_with_date_limiting
@@ -58,4 +57,17 @@ class ManifestTest < Test::Unit::TestCase
     assert_equal 2, @system.latest_manifest_as_of(manifests[1].created_at).id
   end
   
+  def test_identical_files_share_file_content
+    m1 = Nearline::Models::Manifest.backup(@system, $readme, [])
+    m2 = Nearline::Models::Manifest.backup(@system, $readme, [])
+    assert_equal m1.archived_files[0].file_content, m2.archived_files[0].file_content
+  end
+
+  def test_handle_file_path_rollover
+    old_max_files_cached = Nearline::Models::Manifest.max_files_cached
+    Nearline::Models::Manifest.max_files_cached=2
+    m1 = Nearline::Models::Manifest.backup(@system, $temp_path, [])    
+    Nearline::Models::Manifest.max_files_cached = old_max_files_cached
+    assert_equal 5, m1.archived_files.size
+  end
 end
