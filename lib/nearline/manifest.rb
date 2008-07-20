@@ -25,64 +25,6 @@ module Nearline
       end
     end
     
-    # Handles file paths and metadata for a file in a manifest
-    class FileInformation
-      attr_reader :path_hash, :stat, :is_directory,
-        :archived_file_parameters, :manifest, :file_path
-      
-      def initialize(file_path, manifest)
-        @manifest = manifest
-        @file_path = file_path
-        @stat = read_stat
-        @is_directory = File.directory?(file_path)
-        @path_hash = generate_path_hash
-        @archived_file_parameters = build_parameters
-      end
-
-      def read_stat
-        stat = nil
-        begin
-          # TODO: change to lstat when we handle links
-          stat = File.stat(@file_path)
-        rescue
-          @manifest.add_log("File not found on stat: #{@file_path}")
-        end
-        stat
-      end
-
-      def generate_path_hash
-        return nil if @stat.nil?          
-        target = [@manifest.system.name, 
-          @file_path,
-          @stat.uid,
-          @stat.gid,
-          @stat.mtime.to_i,
-          @stat.mode].join(':')
-        Digest::SHA1.hexdigest(target)
-      end
-        
-      def file_content_entry_for_files_only
-        return FileContent.new unless @is_directory
-        return nil
-      end
-
-      def build_parameters
-        return nil if @stat.nil?
-        {
-          :system => @manifest.system,
-          :path => @file_path,
-          :path_hash => @path_hash,
-          :file_content => file_content_entry_for_files_only,
-          :uid => @stat.uid,
-          :gid => @stat.gid,
-          :mtime => @stat.mtime.to_i,
-          :mode => @stat.mode,
-          :is_directory => @is_directory    
-        }
-      end
-
-    end
-    
     # A Manifest represents the corpus of ArchivedFiles and
     # set of Log messages resulting from a backup attempt
     class Manifest < ActiveRecord::Base
@@ -192,16 +134,16 @@ module Nearline
       
       # Iterate all missing files from this manifest, yielding each
       def iterate_all_missing
-        files_restored = []
+        files_iterated = []
         self.archived_files.each do |af|
           begin
-            File.stat(af.path)
+            File.lstat(af.path)
           rescue
             yield af
-            files_restored << af.path
+            files_iterated << af.path
           end
         end
-        return files_restored
+        return files_iterated
       end
       
       def add_log(message)
@@ -223,12 +165,12 @@ module Nearline
       def  archived_file_content_query(op)
         <<-END_SQL
 select distinct fc.id
- from archived_files af,
- archived_files_manifests afm, file_contents fc
- where
- afm.manifest_id #{op} #{self.id} and
- afm.archived_file_id = af.id and
- af.file_content_id = fc.id      
+from archived_files af,
+archived_files_manifests afm, file_contents fc
+where
+afm.manifest_id #{op} #{self.id} and
+afm.archived_file_id = af.id and
+af.file_content_id = fc.id      
         END_SQL
       end
       
@@ -301,8 +243,8 @@ select distinct af.id
       # A simple string reporting the performance of the manifest
       def summary
         completed = (completed_at.nil?) ? "DNF" : completed_at
-        "#{system.name} started: #{created_at}; finished: #{completed}; " +
-          "#{archived_files.size} files; #{logs.size} Errors reported"
+        "#{system.name} started: #{created_at}\nfinished: #{completed}\n" +
+          "#{archived_files.size} files\n#{logs.size} Error#{(logs.size != 1) ? 's' : ''} reported"
       end
       
     end

@@ -4,7 +4,7 @@ Nearline is a near-line backup and recovery solution.
 It is a compelling replacement for straight-to-tape or
 straight-to-disc backup solutions.
 
-It employs a simple database schema to store the data
+It employs a simple database schema to store file data
 and prevent redundancy in the backup stream.
 
 == Examples

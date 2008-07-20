@@ -9,7 +9,6 @@ unless File.exist?($data_path)
   FileUtils.mkdir $data_path 
 end
 
-require 'schema_test'
 require 'block_test'
 require 'nearline_module_test'
 require 'file_content_test'

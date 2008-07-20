@@ -44,11 +44,6 @@ module Nearline
           t.column :file_content_id, :integer, :null => false
         end
         
-        add_index :sequences, [:sequence, :file_content_id], :unique => true,
-          :name => "sequence_jn_index"
-
-        add_index :sequences, [:block_id]
-        
         create_table :systems do |t|
           t.column :name, :string, :null => false
         end
@@ -64,7 +59,8 @@ module Nearline
           t.column :gid, :integer, :default => -1
           t.column :mtime, :integer, :default => 0
           t.column :mode, :integer, :default => 33206  # "chmod 100666"
-          t.column :is_directory, :boolean
+          t.column :ftype, :string, :null => false
+          t.column :ftype_data, :text
         end
         
         add_index :archived_files, [:path_hash], :unique => true
@@ -81,12 +77,6 @@ module Nearline
           t.column :archived_file_id, :integer
           t.column :manifest_id, :integer
         end
-
-        add_index :archived_files_manifests,
-          [:archived_file_id, :manifest_id], {
-          :unique => true,
-          :name => "manifest_jn_index"
-        }
         
         # Keeps a record of problems during backup related to a manifest
         create_table :logs do |t|

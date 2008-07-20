@@ -16,13 +16,21 @@ module Nearline
         # The path doesn't actually exist and fails a File.lstat
         return nil if file_information.path_hash.nil?
         
-        # We need to create a record for either a directory or file
+        # We need to create a record for a link, directory or file
         archived_file = ArchivedFile.new(
           file_information.archived_file_parameters
         )
+        
+        # Find a new link
+        if(file_information.ftype == "link")
+          archived_file.ftype_data = file_information.link_target
+          archived_file.save!
+          file_information.manifest.archived_files << archived_file
+          return archived_file          
+        end
 
         # Find a new directory
-        if (file_information.is_directory)
+        if (file_information.ftype=="directory")
           archived_file.save!
           file_information.manifest.archived_files << archived_file
           return archived_file
@@ -38,25 +46,40 @@ module Nearline
         end
         archived_file
         
-        # TODO: Symbolic links, block devices, ...?
+        # TODO: block devices, ...?
       end
             
       def restore(*args)
         @options = args.extract_options!
-        if (self.is_directory)
+
+        if (self.ftype == "link")
+          guarantee_path
+          File.symlink(self.ftype_data,
+            option_override(:path))
+          #restore_metadata
+          return
+        end
+
+        if (self.ftype == "directory")
           FileUtils.mkdir_p option_override(:path)
           restore_metadata
           return
         end
-        target_path = File.dirname(option_override(:path))
-        if (!File.exist? target_path)
-          FileUtils.mkdir_p target_path
-        end
+        
+        # ftype == "file"
+        guarantee_path
         f = File.open(option_override(:path), "wb")
         self.file_content.restore_to(f)
         f.close
         restore_metadata
         return
+      end
+      
+      def guarantee_path
+        target_path = File.dirname(option_override(:path))
+        if (!File.exist? target_path)
+          FileUtils.mkdir_p target_path
+        end        
       end
       
       def option_override(key)

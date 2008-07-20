@@ -67,11 +67,46 @@ class NearlineModuleTest < Test::Unit::TestCase
     FileUtils.rm_r $temp_path
     
     stuff = Nearline.what_would_restore("baz")
-    assert stuff.include?($readme)
+    assert stuff.find {|e| e =~ /README$/}
     
     Nearline.restore("baz")
     assert File.exists?($readme)
   end
+  
+  def test_symlink_integration
+    unless RUBY_PLATFORM =~/win/
+      database_setup
+      link = $temp_path + '/test_link'
+      Nearline.connect! 'test'
+      File.symlink("README", link)
+      Nearline.backup("baz", $temp_path)
+      # --------------------------
+      FileUtils.rm_r $temp_path
+      assert !File.exists?(link)
+      
+      stuff = Nearline.what_would_restore("baz")
+      assert stuff.find {|e| e =~ /test_link$/}
+      
+      Nearline.restore("baz")
+      assert File.exists?(link)
+      assert_equal "link", File.ftype(link)
+    end
+  end
+  
+#  def test_binary_storage_torture_test
+#    database_setup
+#    Nearline.connect! 'test'
+#    3.times do
+#      File.open($temp_path+"/binary_content","wb") do |f|
+#        65535000.times do
+#          f << (rand(256)).chr
+#        end      
+#      end
+#      m = Nearline.backup("baz", $temp_path)
+#      assert_equal 0, m.logs.size
+#      File.unlink($temp_path+"/binary_content")
+#    end
+#  end
   
   def test_no_dangling_records
     database_setup
@@ -84,7 +119,7 @@ class NearlineModuleTest < Test::Unit::TestCase
     assert_equal 1, Nearline::Models::FileContent.count
     assert_equal 1, Nearline::Models::Sequence.count
     assert_equal 1, Nearline::Models::System.count
-    assert_equal 5, Nearline::Models::ArchivedFile.count
+    assert_equal 4, Nearline::Models::ArchivedFile.count
     assert_equal 1, Nearline::Models::Log.count
     assert_equal 2, Nearline::Models::Manifest.count
     m1.destroy
@@ -92,7 +127,7 @@ class NearlineModuleTest < Test::Unit::TestCase
     assert_equal 1, Nearline::Models::FileContent.count
     assert_equal 1, Nearline::Models::Sequence.count
     assert_equal 1, Nearline::Models::System.count
-    assert_equal 5, Nearline::Models::ArchivedFile.count
+    assert_equal 4, Nearline::Models::ArchivedFile.count
     assert_equal 1, Nearline::Models::Log.count
     assert_equal 1, Nearline::Models::Manifest.count
     m2.system.destroy

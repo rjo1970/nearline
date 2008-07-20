@@ -2,9 +2,9 @@ module Nearline
   module_function
 
   # Version of the software
-  VERSION = "0.0.5"
+  VERSION = "0.0.6"
   # Last version that changed the database structure
-  DB_VERSION = "0.0.4"
+  DB_VERSION = "0.0.6"
   
   # Array of every Nearline Model using an ActiveRecord connection
   AR_MODELS = Nearline::Models.constants.map do |m|
