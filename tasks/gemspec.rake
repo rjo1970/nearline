@@ -12,8 +12,8 @@ SPEC = Gem::Specification.new do |s|
   s.homepage = "http://rubyforge.org/projects/nearline"
   s.summary = "Nearline is a near-line backup and recovery solution"
   s.description = %{
-    Nearline is a library to make managing near-line file repositories
-    simple and elegant in pure Ruby.
+    Nearline is a library to make database-backed backup file
+    repositories simple and elegant in pure Ruby.
   }
   s.rubyforge_project = "nearline"
   s.files = FileList["{tests,lib,doc,tasks}/**/*"].exclude("rdoc").to_a
