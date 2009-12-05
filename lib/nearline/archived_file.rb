@@ -21,32 +21,39 @@ module Nearline
           file_information.archived_file_parameters
         )
         
-        # Find a new link
-        if(file_information.ftype == "link")
-          archived_file.ftype_data = file_information.link_target
-          archived_file.save!
-          file_information.manifest.archived_files << archived_file
-          return archived_file          
-        end
+        begin
+          # Find a new link
+          if(file_information.ftype == "link")
+            archived_file.ftype_data = file_information.link_target
+            archived_file.save!
+            file_information.manifest.archived_files << archived_file
+            return archived_file          
+          end
 
-        # Find a new directory
-        if (file_information.ftype=="directory")
-          archived_file.save!
-          file_information.manifest.archived_files << archived_file
+          # Find a new directory
+          if (file_information.ftype=="directory")
+            archived_file.save!
+            file_information.manifest.archived_files << archived_file
+            return archived_file
+          end
+        
+          # Find a new file that needs persisted        
+          archived_file.file_content.file_size = 
+            [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
+          archived_file = archived_file.persist(file_information.manifest)
+          unless archived_file.nil? || archived_file.frozen?
+            archived_file.save!
+            file_information.manifest.archived_files << archived_file
+          end
           return archived_file
+          # TODO: block devices, ...?
+
+        rescue
+          msg = "#{file_information.file_path} failed to persist"
+          puts msg
+          file_information.manifest.add_log(msg)
+          return nil
         end
-        
-        # Find a new file that needs persisted        
-        archived_file.file_content.file_size = 
-          [file_information.stat.size].pack('Q').unpack('L').first # HACK for Windows
-        archived_file = archived_file.persist(file_information.manifest)
-        unless archived_file.nil? || archived_file.frozen?
-          archived_file.save!
-          file_information.manifest.archived_files << archived_file
-        end
-        archived_file
-        
-        # TODO: block devices, ...?
       end
             
       def restore(*args)
@@ -56,7 +63,7 @@ module Nearline
           guarantee_path
           File.symlink(self.ftype_data,
             option_override(:path))
-          #restore_metadata
+          # do not restore_metadata on a link
           return
         end
 

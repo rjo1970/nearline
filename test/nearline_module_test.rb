@@ -74,7 +74,7 @@ class NearlineModuleTest < Test::Unit::TestCase
   end
   
   def test_symlink_integration
-    unless RUBY_PLATFORM =~/win/
+    unless RUBY_PLATFORM =~/windows/
       database_setup
       link = $temp_path + '/test_link'
       Nearline.connect! 'test'

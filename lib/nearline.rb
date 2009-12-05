@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Nearline
-# Copyright (C) 2008 Robert J. Osborne
+# Copyright (C) 2008-2009 Robert J. Osborne
 
 
 # ActiveRecord database definitions

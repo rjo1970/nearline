@@ -24,7 +24,8 @@ module Nearline
       end
       
       def cleaned_file_path
-        if RUBY_PLATFORM =~/win/
+        # TODO:  handle \\system\$x style Windows file references.
+        if RUBY_PLATFORM =~/windows/
           return @file_path[2..-1]
         end
         @file_path

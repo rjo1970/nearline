@@ -2,9 +2,9 @@ module Nearline
   module_function
 
   # Version of the software
-  VERSION = "0.0.6"
+  VERSION = "0.1.0"
   # Last version that changed the database structure
-  DB_VERSION = "0.0.6"
+  DB_VERSION = "0.1.0"
   
   # Array of every Nearline Model using an ActiveRecord connection
   AR_MODELS = Nearline::Models.constants.map do |m|
@@ -23,7 +23,6 @@ module Nearline
   # Stomps on any ActiveRecord::Base.establish_connection you might
   # have already established.
   # 
-  # ***NOTE: MYSQL is the only recommended database at this time.***
   # 
   # === Examples
   # Nearline.connect!({:adapter => 'sqlite3', :database => 'data/sqlite.db'})
@@ -53,8 +52,6 @@ module Nearline
   # 
   # Accepts a Hash to establish the connection or
   # a String referring to an entry in config/database.yml.
-  # 
-  # ***NOTE: MYSQL is the only recommended database at this time.***
   # 
   # === Examples
   # Nearline.connect({:adapter => 'sqlite3', :database => 'data/sqlite.db'})
@@ -94,7 +91,7 @@ module Nearline
   #
   # Backup my laptop, recurse /home/me and /var/svn
   # 
-  # Nearline.backup('my_laptop', ['/home/me', '/var/svn']
+  # Nearline.backup('my_laptop', ['/home/me', '/var/svn'])
   #
   def backup(system_name, backup_paths,backup_exclusions= [])
     raise_failing_version_check

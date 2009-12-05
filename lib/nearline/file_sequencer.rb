@@ -15,10 +15,11 @@ module Nearline
         if (@file_content.id.nil?)
           @file_content.save!
         end
-        @s = []
-        @b = []
+        @s = []  # sequence array
+        @b = []  # blocks read and fingerprinted
         @file_size = 0
         @offset = 0
+        # TODO: split out SHA1 into its own file read
         @whole_file_hash = Digest::SHA1.new
       end
       
@@ -109,17 +110,18 @@ module Nearline
         while (!@io.eof && count < @@max_blocks)
           count += 1
           
-          # Move to Block
+          # Read block to buffer
           buffer = @io.read(Block.max_block_size)
-          
+                    
           @file_size += buffer.size
           
-          # Move to Block
-          blk = Block.new(:bulk_content => buffer)
+          # Create Block
+          blk = Block.new(:content => buffer)
+          
+          # SHA1 update
           @whole_file_hash.update(buffer)
           
-          # Move to Block
-          blk.calculate_fingerprint
+          # Add block to block array
           @b << blk          
         end
       end

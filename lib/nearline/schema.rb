@@ -26,7 +26,7 @@ module Nearline
 
         create_table :blocks do |t|
           t.column :fingerprint, :string, :length => 40, :null => false
-          t.column :bulk_content, :binary
+          t.column :bulk_content, :text
           t.column :is_compressed, :boolean, :default => false
         end
         

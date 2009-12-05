@@ -15,8 +15,8 @@ class BlockTest < Test::Unit::TestCase
   end
   
   def block_for_content(x)
-    block = Nearline::Models::Block.new(:bulk_content => x)
-    block.calculate_fingerprint
+    block = Nearline::Models::Block.new
+    block.content = CONTENT
     found = Nearline::Models::Block.find_by_fingerprint(block.fingerprint)
     return found if !found.nil?
     block.attempt_compression
@@ -27,7 +27,8 @@ class BlockTest < Test::Unit::TestCase
   def test_block_compresses_content
     block = block_for_content(CONTENT)
     assert block.bulk_content.size < CONTENT.size
-    assert_equal block.content, CONTENT
+    assert_equal true, block.is_compressed
+    assert_equal CONTENT, block.content
   end
   
 end

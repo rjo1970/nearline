@@ -1,6 +1,6 @@
 Dir['tasks/**/*.rake'].each { |rake| load rake }
 
 require 'rubygems'
-Gem::manage_gems
+require 'rubygems/gem_runner'
 
 task :default => [:test]

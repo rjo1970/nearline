@@ -80,7 +80,7 @@ class ArchivedFileTest < Test::Unit::TestCase
   end
   
   def test_achiving_symlink
-    unless RUBY_PLATFORM =~ /win/
+    unless RUBY_PLATFORM =~ /windows/
       link = $temp_path+"/test_link"
       target = "README"
       File.symlink(target, link)

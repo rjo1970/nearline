@@ -9,11 +9,12 @@ module Nearline
     # content access.
     class Block < ActiveRecord::Base
       require "zlib"
+      require "base64"
     
       has_many :sequences
       
       # Maximum block size in bytes
-      @@max_block_size = (64 * 1024)-1
+      @@max_block_size = (32 * 1024)-1
       cattr_accessor :max_block_size
       
       # Level of block compression attempted
@@ -23,36 +24,38 @@ module Nearline
       
       def attempt_compression
         return if (self.is_compressed || @@block_compression_level == 0)
-        candidate_content = Zlib::Deflate.deflate(
-          self.bulk_content,
+        candidate_content = Base64.encode64(Zlib::Deflate.deflate(
+          Base64.decode64(self.bulk_content),
           @@block_compression_level
-        )
+        ))
         if candidate_content.length < self.bulk_content.length
           self.is_compressed = true
           self.bulk_content = candidate_content
         end
       end
-      
-      def calculate_fingerprint
-        self.fingerprint = Digest::SHA1.hexdigest(content)        
-      end
-    
+          
+      #  This is the actual content in unencoded, uncompressed form
       def content
         if !@content.nil?
           return @content
         end
         if (self.is_compressed)
-          return @content = Zlib::Inflate.inflate(self.bulk_content)
+          return @content = Zlib::Inflate.inflate(Base64.decode64(self.bulk_content))
         end
-        @content = self.bulk_content
+        @content = Base64.decode64(self.bulk_content)
       end
-            
+      
+      def content=(content)
+        self.fingerprint = Digest::SHA1.hexdigest(content)
+        self.bulk_content = Base64.encode64(content)
+      end
+                  
       def orphan_check
         if self.sequences.size == 0
           self.destroy
         end
       end
-            
+
     end
   end
 end
